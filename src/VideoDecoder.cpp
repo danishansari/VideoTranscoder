@@ -23,8 +23,7 @@ VideoDecoder::VideoDecoder(string inpVideoFilePath)
 
 VideoDecoder::~VideoDecoder() 
 {
-
-    // packet if any
+    // free packet if any
     if (m_avPkt.data)
         av_free_packet(&m_avPkt);
 

@@ -209,7 +209,7 @@ AVStream* VideoEncoder::addStream()
         avCodecCtx->flags |= CODEC_FLAG_QSCALE;
 
         avCodecCtx->global_quality = avStream->quality = 
-            FF_QP2LAMBDA * m_encoderContext.quality; //FF_QP2LAMBDA = 118
+            FF_QP2LAMBDA * m_encoderContext.quality; 
     }
 
     if (avCodecCtx->codec_id == CODEC_ID_MPEG2VIDEO) 
@@ -218,10 +218,10 @@ AVStream* VideoEncoder::addStream()
     if (avCodecCtx->codec_id == CODEC_ID_MPEG1VIDEO)
         avCodecCtx->mb_decision=2;
 
-    if (avCodecCtx->codec_id == CODEC_ID_H264) //CODEC_ID_MPEG4 for mpeg4
+    if (avCodecCtx->codec_id == CODEC_ID_H264)
     {
         avCodecCtx->i_quant_factor = 0.71;
-        avCodecCtx->crf = 18; //default value = 23
+        avCodecCtx->crf = 18; 
         avCodecCtx->trellis = 1;
         avCodecCtx->qmin = 1;
         avCodecCtx->qmax = 26;
@@ -232,15 +232,6 @@ AVStream* VideoEncoder::addStream()
         avCodecCtx->flags |= CODEC_FLAG_LOOP_FILTER;
         avCodecCtx->ticks_per_frame = 2;
     }
-
-    //if(!strcmp(m_avFmtCtx->oformat->name, "mp4") || 
-    //        !strcmp(m_avFmtCtx->oformat->name, "mov") || 
-    //        !strcmp(m_avFmtCtx->oformat->name, "asf") || 
-    //        !strcmp(m_avFmtCtx->oformat->name, "3gp") ) 
-    //{  
-    //    codec_context->flags |= CODEC_FLAG_GLOBAL_HEADER;
-    //    codec_context->flags |= CODEC_FLAG_LOOP_FILTER;
-    //}
 
     return avStream;
 }
