@@ -21,9 +21,11 @@ CXXFLAGS = $(INCFLAGS)
 all: $(BIN_TRGTS)
 
 $(BIN_TRGTS): $(OBJS)
+	@mkdir -p $(@D)
 	g++ $(CXX) test/testTranscoding.cpp $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+	@mkdir -p $(@D)
 	g++ $(CXX) -c -Iinclude $< -o $@ $(CXXFLAGS)
 
 clean:

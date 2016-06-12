@@ -52,6 +52,8 @@ class VideoEncoder
     int m_pictureOutBufSize;
     
     struct VideoEncoderContext m_encoderContext;
+
+    int m_encoderCtxSet;
  
     void cleanEncoder();
 
@@ -85,7 +87,8 @@ class VideoEncoder
         int stopVideoEncode();
 
         int addNewFrame(unsigned char *frameArr);
-
+    
+        int encoderCtxSet();
 };
 
 #endif // VIDEO_ENCODER_H

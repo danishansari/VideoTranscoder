@@ -13,7 +13,7 @@ VideoEncoder::VideoEncoder ()
     initLocals();
 }
 
-VideoEncoder::VideoEncoder (const struct VideoEncoderContext encoderContext) 
+VideoEncoder::VideoEncoder(const struct VideoEncoderContext encoderContext) 
 {
     initLocals();
 
@@ -25,9 +25,15 @@ VideoEncoder::~VideoEncoder()
     cleanEncoder();
 }
 
-int VideoEncoder::setEncoderContext (const struct VideoEncoderContext encoderContext) 
+int VideoEncoder::setEncoderContext(const struct VideoEncoderContext encoderContext) 
 {
     m_encoderContext = encoderContext;
+    m_encoderCtxSet = 1;
+}
+
+int VideoEncoder::encoderCtxSet() 
+{
+    return m_encoderCtxSet;
 }
 
 int VideoEncoder::startVideoEncode() 
@@ -166,6 +172,7 @@ void VideoEncoder::initLocals()
     m_streamIdx = -1;
     m_pictureOutBuf = NULL;
     m_pictureOutBufSize = 0;
+    m_encoderCtxSet = 0;
 
     av_register_all();
     av_log_set_level(AV_LOG_QUIET);
