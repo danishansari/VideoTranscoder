@@ -106,7 +106,7 @@ int main(int argc, char**argv)
 
     unsigned char *rgbFrame = NULL;
 
-    for (int file = 0; file < allFiles.size(); file++)
+    for (int file = 0; file < (int)allFiles.size(); file++)
     {
         inputFile = allFiles[file];
 
@@ -160,7 +160,7 @@ int main(int argc, char**argv)
             {
                 int size = videoEncoder.addNewFrame(rgbFrame);
 
-                if (size <= 0)
+                if (size < 0)
                 {
                     cout << "Could not encode video: size = " << size << endl;
                     break;

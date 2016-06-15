@@ -3,15 +3,18 @@ SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
 
+FFMPEG_2_7_6_SUPPORT = yes 
+
 SRCS = VideoDecoder.cpp VideoEncoder.cpp
 OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
 
 LIBS = avcodec avformat avutil swscale
-LIBDIRS = /opt/ffmpeg/lib/
+LIBDIRS = /opt/ffmpeg-2.7.6/lib/
 LIBFLAGS = $(LIBS:%=-l%)
 LIBDIRFLAGS = $(LIBDIRS:%=-L%)
 
-INCFLAGS = -Iinclude -I/opt/ffmpeg/include
+INCFLAGS = -Iinclude -I/opt/ffmpeg-2.7.6/include -DFFMPEG_2_7_6 
+
 
 BIN_TRGTS = $(BINDIR)/testTranscode
 

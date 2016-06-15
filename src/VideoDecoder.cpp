@@ -87,8 +87,15 @@ int VideoDecoder::readAndDecodeFrame()
     {
         if (m_avPkt.stream_index == m_streamIndex)
         {
+//#if 1 //LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(55, 45, 101)
+#ifdef FFMPEG_2_7_6
+
+            avcodec_decode_video2(m_avCodecCtx, m_avFrame, &frameFinished, 
+                                    &m_avPkt);
+#else
             avcodec_decode_video(m_avCodecCtx, m_avFrame, &frameFinished, 
                                     m_avPkt.data, m_avPkt.size);
+#endif
         }
     }
 }
@@ -122,17 +129,25 @@ int VideoDecoder::openVideo(string inpVideoFilePath)
     av_register_all();
 
     fprintf(stderr, "\x1b[33m" "VideoDecoder:: Opening video: %s\n" "\x1b[0m", m_inpFile.c_str());
-    
+#ifdef FFMPEG_2_7_6 
+    //AVDictionary *opts = 0;
+
+    if (avformat_open_input(&m_avFmtCtx, (char *)m_inpFile.c_str(), NULL, NULL) != 0)
+#else
     // open video file
     if (av_open_input_file(&m_avFmtCtx, (char *)m_inpFile.c_str(), NULL, 0, NULL) != 0)
+#endif
     {
         fprintf(stderr, "\x1b[31m" "VideoDecoder:: Could not open video: %s\n" "\x1b[0m", 
                                                             m_inpFile.c_str());
         return retStatus;
     }
 
-    // find stream info
+#ifdef FFMPEG_2_7_6 // find stream info
+    if (avformat_find_stream_info(m_avFmtCtx, NULL) < 0)
+#else
     if (av_find_stream_info(m_avFmtCtx) < 0)
+#endif
     {
         fprintf(stderr, "\x1b[31m" "VideoDecoder:: Could not find stream!!" "\x1b[0m");
         return retStatus;
@@ -141,7 +156,11 @@ int VideoDecoder::openVideo(string inpVideoFilePath)
     // find stream index
     for (int i = 0; i < m_avFmtCtx->nb_streams; i++)
     {
+#ifdef FFMPEG_2_7_6
+        if (m_avFmtCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+#else
         if (m_avFmtCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+#endif
         {
             m_streamIndex = i;
             break;
@@ -165,8 +184,11 @@ int VideoDecoder::openVideo(string inpVideoFilePath)
         fprintf(stderr, "\x1b[31m" "VideoDecoder:: Codec not supposted!!" "\x1b[0m");
         return retStatus;
     }
-
+#ifdef FFMPEG_2_7_6
+    if (avcodec_open2(m_avCodecCtx, m_avCodec, NULL) < 0)
+#else
     if (avcodec_open(m_avCodecCtx, m_avCodec) < 0)
+#endif
     {
         fprintf(stderr, "\x1b[31m" "VideoDecoder:: Could not open codec!!" "\x1b[0m");
         return retStatus;
@@ -204,7 +226,11 @@ void VideoDecoder::closeVideo()
 
     if (m_avFmtCtx)
     {
+#ifdef FFMPEG_2_7_6
+        avformat_close_input(&m_avFmtCtx);
+#else
         av_close_input_file(m_avFmtCtx);
+#endif
         m_avFmtCtx = NULL;
         fprintf(stderr, "\x1b[32m" "VideoDecoder:: Video close success!!\n" "\x1b[0m");
     }

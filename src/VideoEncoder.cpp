@@ -108,7 +108,7 @@ int VideoEncoder::addFrame()
         AVPacket avPkt;
         av_init_packet(&avPkt);
 
-        avPkt.flags |= PKT_FLAG_KEY;
+        //avPkt.flags |= PKT_FLAG_KEY;
         avPkt.stream_index = m_avStream->index;
         avPkt.data = (uint8_t *)m_avFrame;
         avPkt.size = sizeof(AVPicture);
@@ -125,7 +125,7 @@ int VideoEncoder::addFrame()
             int size = avcodec_encode_video(avCodecCtx, m_pictureOutBuf, 
                                             m_pictureOutBufSize, m_avFrame);
 
-            if (size > 0) 
+            if (size >= 0) 
             {
                 AVPacket avPkt;
                 av_init_packet(&avPkt);
@@ -151,7 +151,7 @@ int VideoEncoder::addFrame()
         }
     }
 
-    if (retStatus <= 0) 
+    if (retStatus < 0) 
     {
         fprintf(stderr, "\x1b[31m" "VideoEncoder:: Error in encoding frame..\n" "\x1b[0m");
     }
@@ -180,7 +180,11 @@ void VideoEncoder::initLocals()
 
 AVStream* VideoEncoder::addStream() 
 {
+#ifdef FFMPEG_2_7_6
+    AVStream *avStream = avformat_new_stream(m_avFmtCtx, NULL);
+#else
     AVStream *avStream = av_new_stream(m_avFmtCtx, 0);
+#endif
     
     if (!avStream) 
     {
@@ -190,9 +194,15 @@ AVStream* VideoEncoder::addStream()
 
     AVCodecContext *avCodecCtx = avStream->codec;
 
+#ifdef FFMPEG_2_7_6
+    avCodecCtx->codec_id = (AVCodecID)m_avOutFmt->video_codec;
+    avCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
+    avCodecCtx->strict_std_compliance = FF_COMPLIANCE_UNOFFICIAL;
+#else
     avCodecCtx->codec_id = (CodecID)m_avOutFmt->video_codec;
     avCodecCtx->codec_type = CODEC_TYPE_VIDEO;
     avCodecCtx->strict_std_compliance = FF_COMPLIANCE_INOFFICIAL;
+#endif
 
     avCodecCtx->bit_rate = 400000;
     avCodecCtx->width = m_encoderContext.width;
@@ -207,21 +217,27 @@ AVStream* VideoEncoder::addStream()
     if (m_encoderContext.quality) 
     {
         avCodecCtx->flags |= CODEC_FLAG_QSCALE;
-
+#ifdef FFMPEG_2_7_6
+        avCodecCtx->global_quality = FF_QP2LAMBDA * m_encoderContext.quality;
+#else
         avCodecCtx->global_quality = avStream->quality = 
             FF_QP2LAMBDA * m_encoderContext.quality; 
+#endif
     }
 
-    if (avCodecCtx->codec_id == CODEC_ID_MPEG2VIDEO) 
-        avCodecCtx->max_b_frames = 2;
+    //if (avCodecCtx->codec_id == CODEC_ID_MPEG2VIDEO) 
+    //    avCodecCtx->max_b_frames = 2;
 
-    if (avCodecCtx->codec_id == CODEC_ID_MPEG1VIDEO)
-        avCodecCtx->mb_decision=2;
+    //if (avCodecCtx->codec_id == CODEC_ID_MPEG1VIDEO)
+    //    avCodecCtx->mb_decision=2;
 
     if (avCodecCtx->codec_id == CODEC_ID_H264)
     {
         avCodecCtx->i_quant_factor = 0.71;
+#ifdef FFMPEG_2_7_6
+#else
         avCodecCtx->crf = 18; 
+#endif
         avCodecCtx->trellis = 1;
         avCodecCtx->qmin = 1;
         avCodecCtx->qmax = 26;
@@ -247,8 +263,11 @@ void VideoEncoder::openVideo()
         fprintf(stderr, "Vencoder :: video codec not found\n");
         return;
     }
-
+#ifdef FFMPEG_2_7_6
+    if (avcodec_open2(avCodecCtx, avCodec, NULL) < 0) 
+#else
     if (avcodec_open(avCodecCtx, avCodec) < 0) 
+#endif
     {
         fprintf(stderr, "Vencoder :: could not open video codec.\n");
         return;
@@ -318,7 +337,11 @@ int VideoEncoder::initEncoder()
 
     m_frameCount = 0;
 
+#ifdef FFMPEG_2_7_6
+    m_avOutFmt = av_guess_format(NULL, outputFile, NULL);
+#else
     m_avOutFmt = guess_format(NULL, outputFile, NULL);
+#endif
 
     if (!m_avOutFmt) 
     {
@@ -334,9 +357,10 @@ int VideoEncoder::initEncoder()
         m_avOutFmt->video_codec = CODEC_ID_MSMPEG4V2;
     else
     {
-        fprintf(stderr, "\x1b[31m" "VideoEncoder:: Video Codec not supported!!\n" "\x1b[0m");
+        m_avOutFmt->video_codec = CODEC_ID_H264;
+        fprintf(stderr, "\x1b[31m" "VideoEncoder:: Video Codec not supported, Using H264\n" "\x1b[0m");
 
-        return -1;
+        //return -1;
     }
 
     m_avFmtCtx = avformat_alloc_context();
@@ -368,11 +392,19 @@ int VideoEncoder::initEncoder()
 
     if (!(m_avOutFmt->flags & AVFMT_NOFILE)) 
     {
+#ifdef FFMPEG_2_7_6
+        if (avio_open(&m_avFmtCtx->pb, outputFile, AVIO_FLAG_WRITE) < 0)
+#else
         if (url_fopen(&m_avFmtCtx->pb, outputFile, URL_WRONLY) < 0)
+#endif
             fprintf(stderr, "\x1b[31m" "VideoEncoder:: Error in opening url\n" "\x1b[0m");
     }
 
+#ifdef FFMPEG_2_7_6
+    avformat_write_header(m_avFmtCtx, NULL);
+#else
     av_write_header(m_avFmtCtx);
+#endif
 
     return 0;
 }
@@ -397,7 +429,11 @@ void VideoEncoder::finalizeVideo()
                 if (m_avStream->codec->priv_data) 
                     av_freep(&(m_avStream->codec->priv_data));
 
+#ifdef FFMPEG_2_7_6
+                avcodec_free_context(&m_avStream->codec);
+#else
                 avcodec_default_free_buffers(m_avStream->codec);
+#endif
             }
 
             for(int i = 0; i<m_avFmtCtx->nb_streams; i++) 
@@ -407,7 +443,11 @@ void VideoEncoder::finalizeVideo()
             }
 
             if (!(m_avOutFmt->flags & AVFMT_NOFILE)) 
+#ifdef FFMPEG_2_7_6
+                 avio_close(m_avFmtCtx->pb);
+#else
                 url_fclose(m_avFmtCtx->pb);
+#endif
         }
     }
     
