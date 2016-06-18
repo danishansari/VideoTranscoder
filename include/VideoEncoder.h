@@ -118,7 +118,7 @@ class VideoEncoder
     AVStream* addStream();
 
     // function to open video
-    void openVideo();
+    int openVideo();
 
     // function to allocate frame
     AVFrame* allocFrame();
@@ -137,7 +137,7 @@ class VideoEncoder
         ~VideoEncoder();
 
         // function to set encoder context
-        int setEncoderContext(const struct VideoEncoderContext encoderCtx);
+        void setEncoderContext(const struct VideoEncoderContext encoderCtx);
 
         // function to start video encoding
         int startVideoEncode();
