@@ -3,7 +3,7 @@
 
 #include <string>
 
-/// ffmpeg header files.
+// ffmpeg header files.
 extern "C" {
     #include <libavformat/avformat.h>
     #include <libswscale/swscale.h>
@@ -14,120 +14,135 @@ extern "C" {
  */
 struct VideoInfo
 {
-    /// input video file name
+    // input video file name
     std::string videoFileName; 
 
-    /// input video codec name
+    // input video codec name
     std::string videoCodecName; 
 
-    /// input video width
+    // input video width
     int width;
 
-    /// input video height
+    // input video height
     int height;
 
-    /// no of channels in video frame
+    // no of channels in video frame
     int nChannels;
 
-    /// total frame in video
+    // total frame in video
     int totalFrame;
 
-    /// frame rate of input video 
+    // frame rate of input video 
     int frameRate;
 
-    /// total duration of input video
+    // total duration of input video
     double duration;
 
     /**
-     * @brief: constructor to initialize(defaule) member data
+     * @brief: constructor to initialize member data
      */
     VideoInfo()
     {
+        // vidoe filename
         videoFileName = "none";
+
+        // video codec name
         videoCodecName = "none";
+
+        // vidoe width
         width = -1;
+
+        // video height
         height = -1;
+
+        // video num channles
         nChannels = 0;
+
+        // total frames in video
         totalFrame = -1;
+
+        // frame rate of video
         frameRate = -1;
+
+        // total duration
         duration = 0.0;
     }
 };
 
 /**
- * @brief: VideoDecode class 
+ * @brief: VideoDecoder class 
  *          decode frames from video into rgb24
  */
 class VideoDecoder
 {
-    /// input video filename
+    // input video filename
     std::string m_inpFile;
 
-    /// avformat context 
+    // format context 
     AVFormatContext *m_avFmtCtx;
 
-    /// avcodec context
+    // codec context
     AVCodecContext *m_avCodecCtx;
 
-    /// avcodec
+    // codec
     AVCodec *m_avCodec;
 
-    /// avstream
+    // stream
     AVStream *m_avStream;
 
-    /// avframe
+    // frame
     AVFrame *m_avFrame;
 
-    /// converted rgb avframe
+    // converted rgb frame
     AVFrame m_avFrameRGB;
 
-    /// avpkt
+    // avpkt
     AVPacket m_avPkt;
 
-    /// width of input video
+    // width of input video
     int m_width;
 
-    /// height of input video
+    // height of input video
     int m_height;
 
-    /// stream index
+    // stream index
     int m_streamIndex;
 
-    /// total no of frames
+    // total no of frames
     int m_totalFrames;
 
-    /// total duration of video
+    // total duration of video
     int m_totalDuration;
 
-    /// frame rate of input video
+    // frame rate of input video
     int m_frameRate;
 
-    /// function to initialize private member data
+    // function to initialize private member data
     void initLocals();
 
-    /// function to read one frame from video and decode
+    // function to read one frame from video and decode
     int readAndDecodeFrame();
 
     public:
-        /// default constructor for videodecoder
+        // default constructor for videodecoder
         VideoDecoder();
 
-        /// constructor for videodecoder
+        // constructor for videodecoder
         VideoDecoder(std::string inpVideoFilePath);
 
-        /// destructor for videodecoder
+        // destructor for videodecoder
         ~VideoDecoder();
 
-        /// function to open input video
+        // function to open input video
         int openVideo(std::string inpVideoFilePath="");
 
-        /// function to close video if opened
+        // function to close video if opened
         void closeVideo();
 
-        /// function to fetch one decoded frame from input video
+        // function to fetch one decoded frame from input video
         int getNewFrame(unsigned char *frameArray);
 
-        /// function to fetch video information of the input video
+        // function to fetch video information of the input video
         int getVideoInfo(VideoInfo &videoInfo);
 };
 

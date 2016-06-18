@@ -1,11 +1,12 @@
 
 /**
- * Description:
+ * Description: VideoDecoder Class
+ *                  decode frames from video
  *
  * Author: Md Danish
  *
  * Date: 2016-06-02 11:19:02 
-**/
+ */
 
 #include "VideoDecoder.h"
 

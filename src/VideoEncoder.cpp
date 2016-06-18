@@ -1,87 +1,147 @@
 /**
- * Description:
+ * Description: VideoEncoder Class
+ *              Encode Frames to video file
  *
  * Author: Md Danish
  *
  * Date: 2016-06-05 11:19:02 
- **/
+ */
 
 #include "VideoEncoder.h"
 
-VideoEncoder::VideoEncoder () 
+/**
+ * @brief: Default constructor for video encoder
+ *          Initialize all the member data
+ */
+VideoEncoder::VideoEncoder() 
 {
+    // function call to initlialize all data member
     initLocals();
 }
 
+/**
+ * @brief: Parametarized constructor for video encoder
+ * 
+ * @params: VideoEncoderContext
+ */
 VideoEncoder::VideoEncoder(const struct VideoEncoderContext encoderContext) 
 {
+    // function call to initlialize all data member 
     initLocals();
-
+    
+    // function call to set encoder context
     setEncoderContext(encoderContext);
 }
 
+/**
+ * @brief: destructor for video encoder
+ *          clean allocated member data
+ */
 VideoEncoder::~VideoEncoder()
 {
+    // function call to clean allocated member data
     cleanEncoder();
 }
 
-int VideoEncoder::setEncoderContext(const struct VideoEncoderContext encoderContext) 
+/**
+ * @brief: Function to set encoder context
+ *
+ * @params: VideoEncoderContext
+ */
+void VideoEncoder::setEncoderContext(const struct VideoEncoderContext encoderContext) 
 {
+    // setting encoder context
     m_encoderContext = encoderContext;
+
+    // setting flag for encoder context
     m_encoderCtxSet = 1;
 }
 
+/**
+ * @brief: Function to check if encoder context is set
+ *
+ * @return: returns encoder context flag
+ */
 int VideoEncoder::encoderCtxSet() 
 {
     return m_encoderCtxSet;
 }
 
+/**
+ * @brief: function to startVideoEncode
+ *
+ * @return:  return status returned from initialize video
+ */
 int VideoEncoder::startVideoEncode() 
 {
+    // function call to initialize video
     return initializeVideo();
 }
 
+/**
+ * @brief: function to stop video encode
+ *
+ * @return: 0
+ */
 int VideoEncoder::stopVideoEncode() 
 {
+    // function call to finalize video
     finalizeVideo();
     return 0;
 }
 
+/**
+ * @brief: Function to add new frames to video
+ *
+ * @params: frame array to add to video
+ *
+ * @return: returns-1 on failure, 0 on success
+ */
 int VideoEncoder::addNewFrame(unsigned char *frameArr) 
 {
+    // allocate memory to frame
     AVFrame *avFrame = avcodec_alloc_frame();
 
+    // check if allocation was success and stream was initialized
     if (!avFrame || !m_avStream)
     {
         fprintf(stderr, "\x1b[31m" "VideoEncoder:: Could not initialize frame/stream!!\n" "\x1b[0m");
-        return -1;
+        return -1; // return failure
     }
 
+    // set width and height
     int width = m_encoderContext.width;
     int height = m_encoderContext.height;
 
+    // fill data to frame
     avpicture_fill((AVPicture *)avFrame, (unsigned char*)frameArr,
             PIX_FMT_RGB24, width, height);
 
+    // check if member frame is initialized
     if (!m_avFrame) 
-        m_avFrame = allocFrame();
+        m_avFrame = allocFrame(); // allocate frame
 
+    // set conversion context for conversion from rgb
     struct SwsContext* swsContext = sws_getContext(width, height,
                             (::PixelFormat) PIX_FMT_RGB24, width, height,
                             (::PixelFormat)m_avStream->codec->pix_fmt, 
                             SWS_BICUBIC, NULL, NULL, NULL);
 
+    // check if sws context was set
     if (!swsContext) 
     {
         fprintf(stderr, "\x1b[31m" "VideoEncoder:: Could not get scale context\n" "\x1b[0m");
         return -1;
     }
 
+    // convert rgb to required format
     sws_scale(swsContext, avFrame->data, avFrame->linesize, 0, 
             m_avStream->codec->height, m_avFrame->data, m_avFrame->linesize);
 
+    // release conversion context
     sws_freeContext(swsContext);
 
+    // function to add new frame
     return addFrame();
 }
 
