@@ -1,13 +1,29 @@
 # VideoTranscoder
-Transcode Video from one format to H264/MPEG-4 format.
+Transcode Video from any format to H264/MPEG-4 format.
 
-Required Package: ffmpeg
+### Required Packages: 
+* ffmpeg
+* libx264
 
-Compile         : Use make file to compile (make clean; make)
-                    SET LIBDIRS for ffmpeg libraries
-                    SET INCFLAGS for ffmpeg headerfiles
+### Compile
+```
+SET LIBDIRS for ffmpeg libraries
+SET INCFLAGS for ffmpeg headerfiles
 
-Usage           : testPrograme with command line arguments (bin/testTrancode)
+make clean; make
+```
 
-Author          : Md Danish Ansari
-Date            : 2016-06-12
+### Usage
+```
+bin/testTrancode -i </path/to/input/videos/file> -o </path/to/output/videos/file>
+```
+
+* Other options:
+  ```
+    -v    Version of application.
+    -ip   Path to video directory.
+    -irp  Path to video root directory to be scanned recursively.
+    -f    Encoding format of output video (default=MPEG-4).
+    -r    Frame rate of output video (default=15).
+    -q    Quality of output video(default=2). 
+  ```
